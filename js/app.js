@@ -159,20 +159,195 @@ const elements = {
 };
 
 /* ==========================================================================
+   Persistence: Cookies & LocalStorage Auto-Save
+   ========================================================================== */
+
+const STORAGE_KEY = "tweet_studio_recent_work_v1";
+const COOKIE_KEY = "tweet_studio_cookie_v1";
+
+function setCookie(name, value, days = 365) {
+  try {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+  } catch (err) {
+    console.warn("Could not write cookie:", err);
+  }
+}
+
+function getCookie(name) {
+  try {
+    const cookies = document.cookie ? document.cookie.split("; ") : [];
+    for (const c of cookies) {
+      const [key, ...val] = c.split("=");
+      if (key === name) {
+        return decodeURIComponent(val.join("="));
+      }
+    }
+  } catch (err) {
+    console.warn("Could not read cookie:", err);
+  }
+  return null;
+}
+
+let saveDebounceTimer = null;
+
+function saveState() {
+  clearTimeout(saveDebounceTimer);
+  saveDebounceTimer = setTimeout(saveStateImmediately, 180);
+}
+
+function saveStateImmediately() {
+  try {
+    // 1. Full persistence via localStorage (including custom avatar & all tweets)
+    const payload = JSON.stringify(state);
+    localStorage.setItem(STORAGE_KEY, payload);
+
+    // 2. Cookie mirror (lightweight without large binary data to respect 4KB cookie limit)
+    const cookieSnapshot = {
+      profile: {
+        displayName: state.profile.displayName,
+        username: state.profile.username,
+        verified: state.profile.verified,
+        hasCustomAvatar: state.profile.avatar !== currentAvatar
+      },
+      meta: state.meta,
+      tweetsCount: state.tweets.length,
+      activeTweetIndex: state.activeTweetIndex,
+      aspectRatio: state.aspectRatio,
+      viewMode: state.viewMode,
+      styling: state.styling,
+      savedAt: Date.now()
+    };
+    setCookie(COOKIE_KEY, JSON.stringify(cookieSnapshot));
+  } catch (err) {
+    console.warn("Error auto-saving state:", err);
+  }
+}
+
+function loadSavedState() {
+  try {
+    let saved = null;
+    const rawLocal = localStorage.getItem(STORAGE_KEY);
+    if (rawLocal) {
+      saved = JSON.parse(rawLocal);
+    } else {
+      const rawCookie = getCookie(COOKIE_KEY);
+      if (rawCookie) {
+        saved = JSON.parse(rawCookie);
+      }
+    }
+
+    if (saved && typeof saved === "object") {
+      if (saved.profile) {
+        if (saved.profile.displayName) state.profile.displayName = saved.profile.displayName;
+        if (saved.profile.username) state.profile.username = saved.profile.username;
+        if (typeof saved.profile.verified === "boolean") state.profile.verified = saved.profile.verified;
+        if (saved.profile.avatar) state.profile.avatar = saved.profile.avatar;
+      }
+      if (saved.meta) {
+        state.meta = { ...state.meta, ...saved.meta };
+      }
+      if (Array.isArray(saved.tweets) && saved.tweets.length > 0) {
+        state.tweets = saved.tweets;
+      }
+      if (typeof saved.activeTweetIndex === "number" && saved.activeTweetIndex >= 0) {
+        state.activeTweetIndex = Math.min(saved.activeTweetIndex, state.tweets.length - 1);
+      }
+      if (saved.aspectRatio) {
+        state.aspectRatio = saved.aspectRatio;
+      }
+      if (saved.viewMode) {
+        state.viewMode = saved.viewMode;
+      }
+      if (saved.styling) {
+        state.styling = { ...state.styling, ...saved.styling };
+      }
+      return true;
+    }
+  } catch (err) {
+    console.warn("Could not load saved work:", err);
+  }
+  return false;
+}
+
+/* ==========================================================================
    Initialization
    ========================================================================== */
 
 function init() {
+  // Restore recent work from cookies / localStorage
+  loadSavedState();
+
   document.body.className = `theme-${state.styling.theme}`;
   if (elements.appWorkspace) {
     elements.appWorkspace.classList.add("mobile-mode-preview");
   }
-  elements.avatarImg.src = state.profile.avatar;
+
+  // Synchronize inputs with state
+  if (elements.displayNameInput) elements.displayNameInput.value = state.profile.displayName;
+  if (elements.usernameInput) elements.usernameInput.value = state.profile.username;
+  if (elements.avatarImg) elements.avatarImg.src = state.profile.avatar;
+  if (elements.toggleVerified) elements.toggleVerified.checked = state.profile.verified;
+  if (elements.verifiedStatusHint) {
+    elements.verifiedStatusHint.textContent = state.profile.verified ? "Active" : "Deactivated";
+  }
+  if (elements.verifiedStatusBanner) {
+    elements.verifiedStatusBanner.classList.toggle("deactivated", !state.profile.verified);
+  }
+
+  // Date & Engagements inputs
+  if (elements.toggleShowDate) elements.toggleShowDate.checked = state.styling.showDate;
+  if (elements.tweetDateInput) {
+    elements.tweetDateInput.value = state.meta.date;
+    elements.tweetDateInput.disabled = !state.styling.showDate;
+  }
+
+  if (elements.toggleShowEngagements) elements.toggleShowEngagements.checked = state.styling.showEngagements;
+  if (elements.engagementsInputsGroup) {
+    elements.engagementsInputsGroup.style.opacity = state.styling.showEngagements ? "1" : "0.35";
+    elements.engagementsInputsGroup.style.pointerEvents = state.styling.showEngagements ? "auto" : "none";
+  }
+  if (elements.metricRepliesInput) elements.metricRepliesInput.value = state.meta.replies;
+  if (elements.metricRetweetsInput) elements.metricRetweetsInput.value = state.meta.retweets;
+  if (elements.metricLikesInput) elements.metricLikesInput.value = state.meta.likes;
+  if (elements.metricViewsInput) elements.metricViewsInput.value = state.meta.views;
+
+  // Styling inputs
+  if (elements.fontSizeSlider) elements.fontSizeSlider.value = state.styling.fontSize;
+  if (elements.fontSizeBadge) elements.fontSizeBadge.textContent = `${state.styling.fontSize}px`;
+  if (elements.toggleMoreMenu) elements.toggleMoreMenu.checked = state.styling.showMoreMenu;
+
+  // Ratio Buttons & Pills
+  elements.ratioPills.forEach(p => p.classList.toggle("active", p.dataset.ratio === state.aspectRatio));
+  elements.mobileRatioPills.forEach(p => p.classList.toggle("active", p.dataset.ratio === state.aspectRatio));
+  elements.sidebarRatioButtons.forEach(b => b.classList.toggle("active", b.dataset.ratio === state.aspectRatio));
+
+  // Theme Buttons & Pills
+  elements.themePills.forEach(p => p.classList.toggle("active", p.dataset.theme === state.styling.theme));
+  elements.mobileThemePills.forEach(p => p.classList.toggle("active", p.dataset.theme === state.styling.theme));
+  elements.themeCards.forEach(c => c.classList.toggle("active", c.dataset.theme === state.styling.theme));
+
+  // Alignment buttons
+  if (elements.alignmentControl) {
+    elements.alignmentControl.querySelectorAll(".seg-button").forEach(b => {
+      b.classList.toggle("active", b.dataset.align === state.styling.alignment);
+    });
+  }
+
+  // View Mode buttons
+  if (elements.viewModeSingleBtn && elements.viewModeGalleryBtn) {
+    elements.viewModeSingleBtn.classList.toggle("active", state.viewMode === "single");
+    elements.viewModeGalleryBtn.classList.toggle("active", state.viewMode === "gallery");
+  }
+
   bindEvents();
   renderTweetsTabs();
   renderSidebarEditor();
   renderPreview();
   updateDockNav();
+
+  // Save immediately when user leaves or refreshes the page
+  window.addEventListener("beforeunload", saveStateImmediately);
 }
 
 /* ==========================================================================
@@ -198,6 +373,7 @@ function setAspectRatio(ratio) {
   });
 
   renderPreview();
+  saveState();
   showToast(`Ratio set to ${ratio.replace('-', ':')}`, "info");
 }
 
@@ -272,6 +448,7 @@ function bindEvents() {
   elements.displayNameInput.addEventListener("input", (e) => {
     state.profile.displayName = e.target.value.trim() || "Amit P. Kumar";
     renderPreview();
+    saveState();
   });
 
   elements.usernameInput.addEventListener("input", (e) => {
@@ -279,6 +456,7 @@ function bindEvents() {
     if (val && !val.startsWith("@")) val = "@" + val;
     state.profile.username = val || "@iamitpkumar";
     renderPreview();
+    saveState();
   });
 
   if (elements.toggleVerified) {
@@ -291,6 +469,7 @@ function bindEvents() {
         elements.verifiedStatusBanner.classList.toggle("deactivated", !e.target.checked);
       }
       renderPreview();
+      saveState();
     });
   }
 
@@ -319,6 +498,7 @@ function bindEvents() {
     state.profile.avatar = currentAvatar;
     elements.avatarImg.src = currentAvatar;
     renderPreview();
+    saveState();
     showToast("Reset to default profile picture", "info");
   });
 
@@ -331,6 +511,7 @@ function bindEvents() {
       state.styling.showDate = e.target.checked;
       if (elements.tweetDateInput) elements.tweetDateInput.disabled = !e.target.checked;
       renderPreview();
+      saveState();
     });
   }
 
@@ -338,6 +519,7 @@ function bindEvents() {
     elements.tweetDateInput.addEventListener("input", (e) => {
       state.meta.date = e.target.value;
       renderPreview();
+      saveState();
     });
   }
 
@@ -349,6 +531,7 @@ function bindEvents() {
         elements.engagementsInputsGroup.style.pointerEvents = e.target.checked ? "auto" : "none";
       }
       renderPreview();
+      saveState();
     });
   }
 
@@ -356,6 +539,7 @@ function bindEvents() {
     elements.metricRepliesInput.addEventListener("input", (e) => {
       state.meta.replies = e.target.value;
       renderPreview();
+      saveState();
     });
   }
 
@@ -363,6 +547,7 @@ function bindEvents() {
     elements.metricRetweetsInput.addEventListener("input", (e) => {
       state.meta.retweets = e.target.value;
       renderPreview();
+      saveState();
     });
   }
 
@@ -370,6 +555,7 @@ function bindEvents() {
     elements.metricLikesInput.addEventListener("input", (e) => {
       state.meta.likes = e.target.value;
       renderPreview();
+      saveState();
     });
   }
 
@@ -377,6 +563,7 @@ function bindEvents() {
     elements.metricViewsInput.addEventListener("input", (e) => {
       state.meta.views = e.target.value;
       renderPreview();
+      saveState();
     });
   }
 
@@ -385,6 +572,7 @@ function bindEvents() {
     state.styling.fontSize = parseInt(e.target.value, 10);
     elements.fontSizeBadge.textContent = `${state.styling.fontSize}px`;
     renderPreview();
+    saveState();
   });
 
   elements.alignmentControl.querySelectorAll(".seg-button").forEach(btn => {
@@ -393,12 +581,14 @@ function bindEvents() {
       btn.classList.add("active");
       state.styling.alignment = btn.dataset.align;
       renderPreview();
+      saveState();
     });
   });
 
   elements.toggleMoreMenu.addEventListener("change", (e) => {
     state.styling.showMoreMenu = e.target.checked;
     renderPreview();
+    saveState();
   });
 
   // Dock Navigation
@@ -409,6 +599,7 @@ function bindEvents() {
       renderSidebarEditor();
       renderPreview();
       updateDockNav();
+      saveState();
     }
   });
 
@@ -419,6 +610,7 @@ function bindEvents() {
       renderSidebarEditor();
       renderPreview();
       updateDockNav();
+      saveState();
     }
   });
 
@@ -494,6 +686,7 @@ function setTheme(themeName) {
   });
 
   renderPreview();
+  saveState();
   showToast(`Switched to ${themeName === "light" ? "Light" : "Dark"} mode`, "info");
 }
 
@@ -517,6 +710,7 @@ function processAvatarFile(file) {
     state.profile.avatar = event.target.result;
     elements.avatarImg.src = state.profile.avatar;
     renderPreview();
+    saveState();
     showToast("Profile photo updated!", "success");
   };
   reader.readAsDataURL(file);
@@ -537,6 +731,7 @@ function addNewTweet() {
   renderSidebarEditor();
   renderPreview();
   updateDockNav();
+  saveState();
   showToast("Added new tweet card", "success");
 }
 
@@ -551,6 +746,7 @@ function duplicateTweet(index) {
   renderSidebarEditor();
   renderPreview();
   updateDockNav();
+  saveState();
   showToast("Duplicated tweet", "success");
 }
 
@@ -567,6 +763,7 @@ function deleteTweet(index) {
   renderSidebarEditor();
   renderPreview();
   updateDockNav();
+  saveState();
   showToast("Tweet removed", "info");
 }
 
@@ -593,6 +790,7 @@ function renderTweetsTabs() {
       renderSidebarEditor();
       renderPreview();
       updateDockNav();
+      saveState();
     });
     elements.tweetsTabsNav.appendChild(tab);
   });
@@ -645,6 +843,8 @@ function renderSidebarEditor() {
     // Live update preview
     const liveBody = document.querySelector(`.tweet-card[data-card-index="${idx}"] .tweet-quote-text`);
     if (liveBody) liveBody.textContent = e.target.value;
+
+    saveState();
   });
 
   box.querySelector(".duplicate-btn").addEventListener("click", () => duplicateTweet(idx));
@@ -846,6 +1046,7 @@ function importParsedTweets() {
   renderSidebarEditor();
   renderPreview();
   updateDockNav();
+  saveState();
   showToast(`Successfully imported ${state.tweets.length} tweets from CSV!`, "success");
 }
 
@@ -1042,6 +1243,7 @@ function setViewMode(mode) {
   elements.viewModeGalleryBtn.classList.toggle("active", mode === "gallery");
   updateDockNav();
   renderPreview();
+  saveState();
 }
 
 /* ==========================================================================
