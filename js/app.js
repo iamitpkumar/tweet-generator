@@ -399,7 +399,7 @@ function setTheme(themeName) {
   });
 
   renderPreview();
-  showToast(`Switched to ${themeName === "light" ? "Light (#ffffff)" : "Dark (#000000)"} mode`, "info");
+  showToast(`Switched to ${themeName === "light" ? "Light" : "Dark"} mode`, "info");
 }
 
 /* ==========================================================================
