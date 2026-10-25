@@ -93,6 +93,9 @@ const elements = {
   resetAvatarBtn: document.getElementById("resetAvatarBtn"),
   displayNameInput: document.getElementById("displayNameInput"),
   usernameInput: document.getElementById("usernameInput"),
+  toggleVerified: document.getElementById("toggleVerified"),
+  verifiedStatusHint: document.getElementById("verifiedStatusHint"),
+  verifiedStatusBanner: document.getElementById("verifiedStatusBanner"),
 
   // Tweets Manager
   tweetsCountBadge: document.getElementById("tweetsCountBadge"),
@@ -277,6 +280,19 @@ function bindEvents() {
     state.profile.username = val || "@iamitpkumar";
     renderPreview();
   });
+
+  if (elements.toggleVerified) {
+    elements.toggleVerified.addEventListener("change", (e) => {
+      state.profile.verified = e.target.checked;
+      if (elements.verifiedStatusHint) {
+        elements.verifiedStatusHint.textContent = e.target.checked ? "Active" : "Deactivated";
+      }
+      if (elements.verifiedStatusBanner) {
+        elements.verifiedStatusBanner.classList.toggle("deactivated", !e.target.checked);
+      }
+      renderPreview();
+    });
+  }
 
   // Avatar Upload Handlers
   elements.avatarBox.addEventListener("click", () => elements.avatarFileInput.click());
@@ -866,7 +882,7 @@ function createTweetCardElement(tweet, index, ratioClass) {
             <div class="tweet-name-details">
               <div class="tweet-header-info">
                 <span class="tweet-author-name">${escapeHTML(state.profile.displayName)}</span>
-                ${VERIFIED_BADGE_SVG}
+                ${state.profile.verified ? VERIFIED_BADGE_SVG : ''}
                 <span class="tweet-author-handle">${escapeHTML(state.profile.username)}</span>
                 ${state.styling.showDate && meta.date ? `
                   <span class="tweet-header-dot">·</span>
