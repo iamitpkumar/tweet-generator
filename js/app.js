@@ -60,13 +60,43 @@ const state = {
   viewMode: "single",  // 'single' | 'gallery'
   styling: {
     theme: "dark", // 'dark' (#000000) | 'light' (#ffffff)
-    fontSize: 28,
+    fontSize: 18,
+    fontFamily: "inter", // 'inter' | 'montserrat' | 'poppins' | 'playfair' | 'jetbrains' | 'system'
     alignment: "center", // 'center' | 'top'
     showMoreMenu: true,
     showDate: true,
     showEngagements: true
   }
 };
+
+// Font Families & Typography Rules
+const FONT_FAMILIES = {
+  inter: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+  montserrat: "'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif",
+  poppins: "'Poppins', sans-serif",
+  playfair: "'Playfair Display', Georgia, Cambria, serif",
+  jetbrains: "'JetBrains Mono', 'Fira Code', Menlo, monospace",
+  system: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+};
+
+function getFontFamilyCSS(key) {
+  return FONT_FAMILIES[key] || FONT_FAMILIES.inter;
+}
+
+/**
+ * Calculates responsive typography line-height according to optical rules:
+ * - Smaller text (14px-18px) requires looser leading (1.52-1.48) for effortless reading
+ * - Display / Headline text (32px-50px) requires tighter leading (1.34-1.18) so lines remain unified
+ */
+function getTypographyLineHeight(fontSize) {
+  const minSize = 14;
+  const maxSize = 50;
+  const maxLH = 1.52;
+  const minLH = 1.18;
+  const clamped = Math.max(minSize, Math.min(maxSize, fontSize));
+  const t = (clamped - minSize) / (maxSize - minSize);
+  return Number((maxLH - t * (maxLH - minLH)).toFixed(2));
+}
 
 // DOM References
 const elements = {
@@ -116,6 +146,7 @@ const elements = {
   // Style Settings
   sidebarRatioButtons: document.querySelectorAll("#sidebarRatioControl .seg-button"),
   themeCards: document.querySelectorAll(".theme-card-box"),
+  fontFamilySelect: document.getElementById("fontFamilySelect"),
   fontSizeSlider: document.getElementById("fontSizeSlider"),
   fontSizeBadge: document.getElementById("fontSizeBadge"),
   alignmentControl: document.getElementById("alignmentControl"),
@@ -261,6 +292,14 @@ function loadSavedState() {
       }
       if (saved.styling) {
         state.styling = { ...state.styling, ...saved.styling };
+        if (typeof state.styling.fontSize === "number") {
+          state.styling.fontSize = Math.max(14, Math.min(50, state.styling.fontSize));
+        } else {
+          state.styling.fontSize = 18;
+        }
+        if (!state.styling.fontFamily || !FONT_FAMILIES[state.styling.fontFamily]) {
+          state.styling.fontFamily = "inter";
+        }
       }
       return true;
     }
@@ -313,7 +352,12 @@ function init() {
   if (elements.metricViewsInput) elements.metricViewsInput.value = state.meta.views;
 
   // Styling inputs
-  if (elements.fontSizeSlider) elements.fontSizeSlider.value = state.styling.fontSize;
+  if (elements.fontFamilySelect) elements.fontFamilySelect.value = state.styling.fontFamily || "inter";
+  if (elements.fontSizeSlider) {
+    elements.fontSizeSlider.min = "14";
+    elements.fontSizeSlider.max = "50";
+    elements.fontSizeSlider.value = state.styling.fontSize;
+  }
   if (elements.fontSizeBadge) elements.fontSizeBadge.textContent = `${state.styling.fontSize}px`;
   if (elements.toggleMoreMenu) elements.toggleMoreMenu.checked = state.styling.showMoreMenu;
 
@@ -568,12 +612,24 @@ function bindEvents() {
   }
 
   // Styling
-  elements.fontSizeSlider.addEventListener("input", (e) => {
-    state.styling.fontSize = parseInt(e.target.value, 10);
-    elements.fontSizeBadge.textContent = `${state.styling.fontSize}px`;
-    renderPreview();
-    saveState();
-  });
+  if (elements.fontFamilySelect) {
+    elements.fontFamilySelect.addEventListener("change", (e) => {
+      state.styling.fontFamily = e.target.value;
+      renderPreview();
+      saveState();
+    });
+  }
+
+  if (elements.fontSizeSlider) {
+    elements.fontSizeSlider.addEventListener("input", (e) => {
+      state.styling.fontSize = parseInt(e.target.value, 10);
+      if (elements.fontSizeBadge) {
+        elements.fontSizeBadge.textContent = `${state.styling.fontSize}px`;
+      }
+      renderPreview();
+      saveState();
+    });
+  }
 
   elements.alignmentControl.querySelectorAll(".seg-button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1064,6 +1120,8 @@ function createTweetCardElement(tweet, index, ratioClass) {
   if (ratioClass === "9-16") {
     dynamicFontSize = Math.round(state.styling.fontSize * 1.15);
   }
+  const dynamicLineHeight = getTypographyLineHeight(dynamicFontSize);
+  const dynamicFontFamily = getFontFamilyCSS(state.styling.fontFamily);
 
   const meta = tweet.meta || state.meta;
 
@@ -1100,7 +1158,7 @@ function createTweetCardElement(tweet, index, ratioClass) {
         </div>
 
         <!-- Body: Tweet Quote Text -->
-        <div class="tweet-quote-text" style="font-size: ${dynamicFontSize}px;">${escapeHTML(tweet.text)}</div>
+        <div class="tweet-quote-text" style="font-size: ${dynamicFontSize}px; line-height: ${dynamicLineHeight}; font-family: ${dynamicFontFamily};">${escapeHTML(tweet.text)}</div>
 
         <!-- Twitter/X Authentic Engagements Bar -->
         ${state.styling.showEngagements ? `
@@ -1338,9 +1396,11 @@ function scaleCardForHDExport(cardElement, aspectRatio) {
   const quote = cardElement.querySelector(".tweet-quote-text");
   if (quote) {
     const scaleFactor = (aspectRatio === "9-16") ? 1.85 : 1.7;
-    quote.style.fontSize = `${Math.round(state.styling.fontSize * scaleFactor)}px`;
+    const exportFontSize = Math.round(state.styling.fontSize * scaleFactor);
+    quote.style.fontSize = `${exportFontSize}px`;
+    quote.style.lineHeight = `${getTypographyLineHeight(state.styling.fontSize)}`;
+    quote.style.fontFamily = getFontFamilyCSS(state.styling.fontFamily);
     quote.style.marginTop = "44px";
-    quote.style.lineHeight = "1.52";
   }
 
   const engagementsBar = cardElement.querySelector(".tweet-engagements-bar");
