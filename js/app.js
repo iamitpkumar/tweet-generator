@@ -1571,24 +1571,45 @@ if (typeof window.initCoolCardsDropdowns !== 'function') {
   window.initCoolCardsDropdowns = function(scope = document) {
     const selects = scope.querySelectorAll('select.cc-dropdown, select.styled-select, select[data-cc-dropdown]');
 
-    function applyFontPreview(el, val) {
-      if (!val) return;
+    function getFontMeta(opt) {
+      if (!opt) return { title: 'Select...', sub: '', isFont: false, fontCSS: null };
+      const val = (opt.value || '').toLowerCase();
       const fontMap = {
-        'inter': "'Inter', sans-serif",
-        'montserrat': "'Montserrat', sans-serif",
-        'poppins': "'Poppins', sans-serif",
-        'playfair': "'Playfair Display', serif",
-        'jetbrains': "'JetBrains Mono', monospace",
-        'system': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        'outfit': "'Outfit', sans-serif",
-        'plus-jakarta': "'Plus Jakarta Sans', sans-serif",
-        'cinzel': "'Cinzel', serif",
-        'space-grotesk': "'Space Grotesk', sans-serif",
-        'syne': "'Syne', sans-serif"
+        'inter': { name: 'Inter', sub: 'Swiss Minimalist Clean', css: "'Inter', sans-serif" },
+        'poppins': { name: 'Poppins', sub: 'Geometric Modern Sans', css: "'Poppins', sans-serif" },
+        'plus-jakarta': { name: 'Plus Jakarta Sans', sub: 'Tech Geometric Sans', css: "'Plus Jakarta Sans', sans-serif" },
+        'montserrat': { name: 'Montserrat', sub: 'Bold Luxury Modern', css: "'Montserrat', sans-serif" },
+        'cinzel': { name: 'Cinzel', sub: 'Royal Roman Serif', css: "'Cinzel', serif" },
+        'playfair': { name: 'Playfair Display', sub: 'Editorial High-Fashion', css: "'Playfair Display', serif" },
+        'space-grotesk': { name: 'Space Grotesk', sub: 'Tech Architecture Sans', css: "'Space Grotesk', sans-serif" },
+        'syne': { name: 'Syne', sub: 'Contemporary Creative', css: "'Syne', sans-serif" },
+        'outfit': { name: 'Outfit', sub: 'Executive Modern Sans', css: "'Outfit', sans-serif" },
+        'jetbrains': { name: 'JetBrains Mono', sub: 'Developer Code Monospace', css: "'JetBrains Mono', monospace" },
+        'system': { name: 'System Sans', sub: 'Twitter / System Clean', css: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }
       };
-      if (fontMap[val.toLowerCase()]) {
-        el.style.fontFamily = fontMap[val.toLowerCase()];
+
+      const entry = fontMap[val];
+      if (entry) {
+        const explicitTitle = opt.getAttribute('data-title') || entry.name;
+        const explicitCategory = opt.getAttribute('data-category') || opt.getAttribute('data-desc') || entry.sub;
+        return {
+          title: explicitTitle,
+          sub: explicitCategory,
+          isFont: true,
+          fontCSS: entry.css
+        };
       }
+
+      const text = opt.text || opt.value || '';
+      const match = text.match(/^([^(]+)(?:\((.*)\))?$/);
+      const title = opt.getAttribute('data-title') || (match ? match[1].trim() : text);
+      const sub = opt.getAttribute('data-category') || opt.getAttribute('data-desc') || (match && match[2] ? match[2].trim() : '');
+      return {
+        title,
+        sub,
+        isFont: false,
+        fontCSS: null
+      };
     }
 
     selects.forEach(select => {
@@ -1611,32 +1632,88 @@ if (typeof window.initCoolCardsDropdowns !== 'function') {
       }
       select.classList.add('cc-dropdown-hidden');
 
+      // Build Trigger Button
       const trigger = document.createElement('button');
       trigger.type = 'button';
       trigger.className = 'cc-dropdown-trigger';
       trigger.setAttribute('aria-haspopup', 'listbox');
       trigger.setAttribute('aria-expanded', 'false');
 
-      const selectedWrap = document.createElement('span');
+      const selectedWrap = document.createElement('div');
       selectedWrap.className = 'cc-dropdown-selected';
-
-      const selectedText = document.createElement('span');
-      selectedText.className = 'cc-dropdown-selected-text';
-      
-      const activeOpt = select.options[select.selectedIndex] || select.options[0];
-      selectedText.textContent = activeOpt ? activeOpt.text : 'Select...';
-      if (activeOpt && activeOpt.value) {
-        applyFontPreview(selectedText, activeOpt.value);
-      }
-      selectedWrap.appendChild(selectedText);
       trigger.appendChild(selectedWrap);
 
+      // Chevron Icon
       const chevron = document.createElement('i');
       chevron.className = 'fa-solid fa-chevron-down cc-dropdown-chevron-icon';
       trigger.appendChild(chevron);
 
       wrap.appendChild(trigger);
 
+      // Function to render active trigger content with rich typography preview
+      function updateTriggerDisplay(opt) {
+        const meta = getFontMeta(opt);
+        selectedWrap.innerHTML = '';
+
+        if (meta.isFont) {
+          // Specimen glyph box (Aa)
+          const specimen = document.createElement('span');
+          specimen.className = 'cc-dropdown-specimen';
+          specimen.textContent = 'Aa';
+          if (meta.fontCSS) specimen.style.fontFamily = meta.fontCSS;
+          selectedWrap.appendChild(specimen);
+
+          // Text column
+          const textCol = document.createElement('div');
+          textCol.className = 'cc-dropdown-selected-text-wrap';
+
+          const titleEl = document.createElement('span');
+          titleEl.className = 'cc-dropdown-selected-title';
+          titleEl.textContent = meta.title;
+          if (meta.fontCSS) titleEl.style.fontFamily = meta.fontCSS;
+          textCol.appendChild(titleEl);
+
+          if (meta.sub) {
+            const subEl = document.createElement('span');
+            subEl.className = 'cc-dropdown-selected-sub';
+            subEl.textContent = meta.sub;
+            textCol.appendChild(subEl);
+          }
+
+          selectedWrap.appendChild(textCol);
+        } else {
+          const iconClass = opt ? opt.getAttribute('data-icon') : null;
+          if (iconClass) {
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'cc-dropdown-selected-icon';
+            iconSpan.innerHTML = `<i class="${iconClass}"></i>`;
+            selectedWrap.appendChild(iconSpan);
+          }
+
+          const textCol = document.createElement('div');
+          textCol.className = 'cc-dropdown-selected-text-wrap';
+
+          const titleEl = document.createElement('span');
+          titleEl.className = 'cc-dropdown-selected-text';
+          titleEl.textContent = meta.title;
+          textCol.appendChild(titleEl);
+
+          if (meta.sub) {
+            const subEl = document.createElement('span');
+            subEl.className = 'cc-dropdown-selected-sub';
+            subEl.textContent = meta.sub;
+            textCol.appendChild(subEl);
+          }
+
+          selectedWrap.appendChild(textCol);
+        }
+      }
+
+      // Set initial display
+      const activeOpt = select.options[select.selectedIndex] || select.options[0];
+      updateTriggerDisplay(activeOpt);
+
+      // Build Floating Menu
       const menu = document.createElement('div');
       menu.className = 'cc-dropdown-menu';
       menu.setAttribute('role', 'listbox');
@@ -1653,33 +1730,60 @@ if (typeof window.initCoolCardsDropdowns !== 'function') {
           const left = document.createElement('div');
           left.className = 'cc-dropdown-item-left';
 
-          const iconClass = opt.getAttribute('data-icon');
-          if (iconClass) {
-            const iconSpan = document.createElement('span');
-            iconSpan.className = 'cc-dropdown-item-icon';
-            iconSpan.innerHTML = `<i class="${iconClass}"></i>`;
-            left.appendChild(iconSpan);
+          const meta = getFontMeta(opt);
+
+          if (meta.isFont) {
+            // Specimen box (Aa)
+            const specimen = document.createElement('span');
+            specimen.className = 'cc-dropdown-item-specimen';
+            specimen.textContent = 'Aa';
+            if (meta.fontCSS) specimen.style.fontFamily = meta.fontCSS;
+            left.appendChild(specimen);
+
+            const textCol = document.createElement('div');
+            textCol.className = 'cc-dropdown-item-text';
+
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'cc-dropdown-item-title';
+            titleSpan.textContent = meta.title;
+            if (meta.fontCSS) titleSpan.style.fontFamily = meta.fontCSS;
+            textCol.appendChild(titleSpan);
+
+            if (meta.sub) {
+              const descSpan = document.createElement('span');
+              descSpan.className = 'cc-dropdown-item-desc';
+              descSpan.textContent = meta.sub;
+              textCol.appendChild(descSpan);
+            }
+
+            left.appendChild(textCol);
+          } else {
+            const iconClass = opt.getAttribute('data-icon');
+            if (iconClass) {
+              const iconSpan = document.createElement('span');
+              iconSpan.className = 'cc-dropdown-item-icon';
+              iconSpan.innerHTML = `<i class="${iconClass}"></i>`;
+              left.appendChild(iconSpan);
+            }
+
+            const textCol = document.createElement('div');
+            textCol.className = 'cc-dropdown-item-text';
+
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'cc-dropdown-item-title';
+            titleSpan.textContent = meta.title;
+            textCol.appendChild(titleSpan);
+
+            if (meta.sub) {
+              const descSpan = document.createElement('span');
+              descSpan.className = 'cc-dropdown-item-desc';
+              descSpan.textContent = meta.sub;
+              textCol.appendChild(descSpan);
+            }
+
+            left.appendChild(textCol);
           }
 
-          const textCol = document.createElement('div');
-          textCol.className = 'cc-dropdown-item-text';
-
-          const titleSpan = document.createElement('span');
-          titleSpan.className = 'cc-dropdown-item-title';
-          titleSpan.textContent = opt.text;
-          applyFontPreview(titleSpan, opt.value);
-
-          textCol.appendChild(titleSpan);
-
-          const desc = opt.getAttribute('data-desc');
-          if (desc) {
-            const descSpan = document.createElement('span');
-            descSpan.className = 'cc-dropdown-item-desc';
-            descSpan.textContent = desc;
-            textCol.appendChild(descSpan);
-          }
-
-          left.appendChild(textCol);
           item.appendChild(left);
 
           const check = document.createElement('i');
@@ -1689,8 +1793,7 @@ if (typeof window.initCoolCardsDropdowns !== 'function') {
           item.addEventListener('click', (e) => {
             e.stopPropagation();
             select.selectedIndex = idx;
-            selectedText.textContent = opt.text;
-            applyFontPreview(selectedText, opt.value);
+            updateTriggerDisplay(opt);
 
             menu.querySelectorAll('.cc-dropdown-item').forEach(it => it.classList.remove('active'));
             item.classList.add('active');
@@ -1737,8 +1840,7 @@ if (typeof window.initCoolCardsDropdowns !== 'function') {
       select.addEventListener('change', () => {
         const currentOpt = select.options[select.selectedIndex];
         if (currentOpt) {
-          selectedText.textContent = currentOpt.text;
-          applyFontPreview(selectedText, currentOpt.value);
+          updateTriggerDisplay(currentOpt);
           menu.querySelectorAll('.cc-dropdown-item').forEach((it, idx) => {
             if (idx === select.selectedIndex) it.classList.add('active');
             else it.classList.remove('active');
