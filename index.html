@@ -208,7 +208,61 @@
           </div>
         </section>
 
-        <!-- 3. Styling & Layout Customization -->
+        <!-- 3. Date & Engagement Metrics -->
+        <section class="studio-panel">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+              Date & Engagements
+            </span>
+          </div>
+
+          <!-- Date Settings -->
+          <div class="control-row">
+            <div class="switch-row" style="margin-bottom: 0.6rem;">
+              <span class="switch-label">Show Date in Header</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggleShowDate" checked>
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+            <div class="field-group" id="dateInputWrapper">
+              <label class="field-label" for="tweetDateInput">Tweet Time / Date</label>
+              <input type="text" id="tweetDateInput" class="field-input" value="2h" placeholder="e.g. 2h, 15m, Oct 25">
+            </div>
+          </div>
+
+          <!-- Engagements Bar Settings -->
+          <div class="control-row" style="margin-top: 0.75rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle);">
+            <div class="switch-row" style="margin-bottom: 0.65rem;">
+              <span class="switch-label">Show Engagements Bar</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggleShowEngagements" checked>
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+            <div class="metrics-grid" id="engagementsInputsGroup">
+              <div class="field-group">
+                <label class="field-label" for="metricRepliesInput">💬 Replies</label>
+                <input type="text" id="metricRepliesInput" class="field-input" value="1.2K" placeholder="1.2K">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="metricRetweetsInput">🔁 Reposts</label>
+                <input type="text" id="metricRetweetsInput" class="field-input" value="4.6K" placeholder="4.6K">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="metricLikesInput">🤍 Likes</label>
+                <input type="text" id="metricLikesInput" class="field-input" value="15K" placeholder="15K">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="metricViewsInput">📊 Views</label>
+                <input type="text" id="metricViewsInput" class="field-input" value="404K" placeholder="404K">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Styling & Layout Customization -->
         <section class="studio-panel">
           <div class="panel-header">
             <span class="panel-title">
@@ -282,14 +336,6 @@
             <span class="switch-label">Show Three Dots (...) Menu</span>
             <label class="toggle-switch">
               <input type="checkbox" id="toggleMoreMenu" checked>
-              <span class="toggle-track"></span>
-            </label>
-          </div>
-
-          <div class="switch-row">
-            <span class="switch-label">Show Date & Engagement Counts</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="toggleTimestamp">
               <span class="toggle-track"></span>
             </label>
           </div>

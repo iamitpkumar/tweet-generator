@@ -21,6 +21,19 @@ const MORE_DOTS_SVG = `
   <path d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
 </svg>`;
 
+// Twitter/X Authentic Engagement Icons
+const REPLY_SVG = `<svg viewBox="0 0 24 24" class="engagement-icon" aria-hidden="true"><g><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/></g></svg>`;
+
+const RETWEET_SVG = `<svg viewBox="0 0 24 24" class="engagement-icon" aria-hidden="true"><g><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.9 2 2 2H16v2H7.5C5.01 20 3 17.99 3 15.5V7.55L0.932 9.48 0 8.02l4.5-4.14zM19.5 20.12l-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.9-2-2-2H8V4h8.5C18.99 4 21 6.01 21 8.5v7.95l2.068-1.93.932 1.46-4.5 4.14z"/></g></svg>`;
+
+const LIKE_SVG = `<svg viewBox="0 0 24 24" class="engagement-icon" aria-hidden="true"><g><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-2.415.11-4.3 2.11-4.3 4.65 0 2.51 1.289 4.75 3.238 6.64l6.007 5.84 6.008-5.84c1.949-1.89 3.238-4.13 3.238-6.64 0-2.54-1.885-4.55-4.3-4.65zm-4.695 14.8l-5.388-5.23C4.837 13.39 3.75 11.53 3.75 9.65c0-1.93 1.439-3.47 3.273-3.55 1.036-.05 2.18.43 3.102 1.68l1.877 2.54 1.876-2.54c.923-1.25 2.067-1.73 3.103-1.68 1.834.08 3.272 1.62 3.272 3.55 0 1.88-1.087 3.74-2.871 5.42L12.002 20.3z"/></g></svg>`;
+
+const VIEWS_SVG = `<svg viewBox="0 0 24 24" class="engagement-icon" aria-hidden="true"><g><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"/></g></svg>`;
+
+const BOOKMARK_SVG = `<svg viewBox="0 0 24 24" class="engagement-icon" aria-hidden="true"><g><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"/></g></svg>`;
+
+const SHARE_SVG = `<svg viewBox="0 0 24 24" class="engagement-icon" aria-hidden="true"><g><path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41L7.71 9.71 6.3 8.29 12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21.01 3 19.9 3 18.51V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"/></g></svg>`;
+
 // Application State
 const state = {
   profile: {
@@ -28,6 +41,13 @@ const state = {
     username: "@iamitpkumar",
     avatar: currentAvatar,
     verified: true
+  },
+  meta: {
+    date: "2h",
+    replies: "1.2K",
+    retweets: "4.6K",
+    likes: "15K",
+    views: "404K"
   },
   tweets: [
     {
@@ -43,7 +63,8 @@ const state = {
     fontSize: 28,
     alignment: "center", // 'center' | 'top'
     showMoreMenu: true,
-    showTimestamp: false
+    showDate: true,
+    showEngagements: true
   }
 };
 
@@ -79,6 +100,16 @@ const elements = {
   tweetsEditorList: document.getElementById("tweetsEditorList"),
   addTweetBtn: document.getElementById("addTweetBtn"),
 
+  // Date & Engagements
+  toggleShowDate: document.getElementById("toggleShowDate"),
+  tweetDateInput: document.getElementById("tweetDateInput"),
+  toggleShowEngagements: document.getElementById("toggleShowEngagements"),
+  engagementsInputsGroup: document.getElementById("engagementsInputsGroup"),
+  metricRepliesInput: document.getElementById("metricRepliesInput"),
+  metricRetweetsInput: document.getElementById("metricRetweetsInput"),
+  metricLikesInput: document.getElementById("metricLikesInput"),
+  metricViewsInput: document.getElementById("metricViewsInput"),
+
   // Style Settings
   sidebarRatioButtons: document.querySelectorAll("#sidebarRatioControl .seg-button"),
   themeCards: document.querySelectorAll(".theme-card-box"),
@@ -86,7 +117,6 @@ const elements = {
   fontSizeBadge: document.getElementById("fontSizeBadge"),
   alignmentControl: document.getElementById("alignmentControl"),
   toggleMoreMenu: document.getElementById("toggleMoreMenu"),
-  toggleTimestamp: document.getElementById("toggleTimestamp"),
 
   // Canvas Viewport & Dock
   canvasStage: document.getElementById("canvasStage"),
@@ -278,7 +308,61 @@ function bindEvents() {
 
   // Tweets Manager
   elements.addTweetBtn.addEventListener("click", addNewTweet);
-  elements.bulkAddBtn.addEventListener("click", openBulkModal);
+
+  // Date & Engagements
+  if (elements.toggleShowDate) {
+    elements.toggleShowDate.addEventListener("change", (e) => {
+      state.styling.showDate = e.target.checked;
+      if (elements.tweetDateInput) elements.tweetDateInput.disabled = !e.target.checked;
+      renderPreview();
+    });
+  }
+
+  if (elements.tweetDateInput) {
+    elements.tweetDateInput.addEventListener("input", (e) => {
+      state.meta.date = e.target.value;
+      renderPreview();
+    });
+  }
+
+  if (elements.toggleShowEngagements) {
+    elements.toggleShowEngagements.addEventListener("change", (e) => {
+      state.styling.showEngagements = e.target.checked;
+      if (elements.engagementsInputsGroup) {
+        elements.engagementsInputsGroup.style.opacity = e.target.checked ? "1" : "0.35";
+        elements.engagementsInputsGroup.style.pointerEvents = e.target.checked ? "auto" : "none";
+      }
+      renderPreview();
+    });
+  }
+
+  if (elements.metricRepliesInput) {
+    elements.metricRepliesInput.addEventListener("input", (e) => {
+      state.meta.replies = e.target.value;
+      renderPreview();
+    });
+  }
+
+  if (elements.metricRetweetsInput) {
+    elements.metricRetweetsInput.addEventListener("input", (e) => {
+      state.meta.retweets = e.target.value;
+      renderPreview();
+    });
+  }
+
+  if (elements.metricLikesInput) {
+    elements.metricLikesInput.addEventListener("input", (e) => {
+      state.meta.likes = e.target.value;
+      renderPreview();
+    });
+  }
+
+  if (elements.metricViewsInput) {
+    elements.metricViewsInput.addEventListener("input", (e) => {
+      state.meta.views = e.target.value;
+      renderPreview();
+    });
+  }
 
   // Styling
   elements.fontSizeSlider.addEventListener("input", (e) => {
@@ -298,11 +382,6 @@ function bindEvents() {
 
   elements.toggleMoreMenu.addEventListener("change", (e) => {
     state.styling.showMoreMenu = e.target.checked;
-    renderPreview();
-  });
-
-  elements.toggleTimestamp.addEventListener("change", (e) => {
-    state.styling.showTimestamp = e.target.checked;
     renderPreview();
   });
 
@@ -769,6 +848,8 @@ function createTweetCardElement(tweet, index, ratioClass) {
     dynamicFontSize = Math.round(state.styling.fontSize * 1.15);
   }
 
+  const meta = tweet.meta || state.meta;
+
   const card = document.createElement("div");
   card.className = `tweet-card ratio-${ratioClass} ${themeClass}`;
   card.dataset.cardIndex = index;
@@ -776,18 +857,22 @@ function createTweetCardElement(tweet, index, ratioClass) {
   card.innerHTML = `
     <div class="tweet-inner ${alignClass}">
       <div class="tweet-content-container">
-        <!-- Header: Avatar + Names + Dots -->
+        <!-- Header: Avatar + Names + Date + Dots -->
         <div class="tweet-header-row">
           <div class="tweet-profile-group">
             <div class="tweet-avatar-box">
               <img src="${state.profile.avatar}" alt="Avatar">
             </div>
             <div class="tweet-name-details">
-              <div class="tweet-name-with-tick">
+              <div class="tweet-header-info">
                 <span class="tweet-author-name">${escapeHTML(state.profile.displayName)}</span>
                 ${VERIFIED_BADGE_SVG}
+                <span class="tweet-author-handle">${escapeHTML(state.profile.username)}</span>
+                ${state.styling.showDate && meta.date ? `
+                  <span class="tweet-header-dot">·</span>
+                  <span class="tweet-header-date">${escapeHTML(meta.date)}</span>
+                ` : ''}
               </div>
-              <span class="tweet-author-handle">${escapeHTML(state.profile.username)}</span>
             </div>
           </div>
           ${state.styling.showMoreMenu ? `
@@ -800,19 +885,32 @@ function createTweetCardElement(tweet, index, ratioClass) {
         <!-- Body: Tweet Quote Text -->
         <div class="tweet-quote-text" style="font-size: ${dynamicFontSize}px;">${escapeHTML(tweet.text)}</div>
 
-        <!-- Optional Metrics / Timestamp Footer -->
-        ${state.styling.showTimestamp ? `
-          <div class="tweet-metrics-bar">
-            <span>8:00 PM · Oct 25, 2026</span>
-            <div class="tweet-metrics-icons">
-              <span class="metric-stat-item">
-                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                <span>4.8K</span>
-              </span>
-              <span class="metric-stat-item">
-                <svg viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.9 2 2 2H16v2H7.5C5.01 20 3 17.99 3 15.5V7.55L0.932 9.48 0 8.02l4.5-4.14zM19.5 20.12l-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.9-2-2-2H8V4h8.5C18.99 4 21 6.01 21 8.5v7.95l2.068-1.93.932 1.46-4.5 4.14z"/></svg>
-                <span>1.2K</span>
-              </span>
+        <!-- Twitter/X Authentic Engagements Bar -->
+        ${state.styling.showEngagements ? `
+          <div class="tweet-engagements-bar">
+            <div class="engagement-item" title="Replies">
+              ${REPLY_SVG}
+              <span class="engagement-count">${escapeHTML(meta.replies)}</span>
+            </div>
+            <div class="engagement-item" title="Reposts">
+              ${RETWEET_SVG}
+              <span class="engagement-count">${escapeHTML(meta.retweets)}</span>
+            </div>
+            <div class="engagement-item" title="Likes">
+              ${LIKE_SVG}
+              <span class="engagement-count">${escapeHTML(meta.likes)}</span>
+            </div>
+            <div class="engagement-item" title="Views">
+              ${VIEWS_SVG}
+              <span class="engagement-count">${escapeHTML(meta.views)}</span>
+            </div>
+            <div class="engagement-actions-right">
+              <div class="engagement-icon-only" title="Bookmark">
+                ${BOOKMARK_SVG}
+              </div>
+              <div class="engagement-icon-only" title="Share">
+                ${SHARE_SVG}
+              </div>
             </div>
           </div>
         ` : ''}
@@ -900,7 +998,7 @@ function setViewMode(mode) {
 function openPrintModal() {
   elements.printModalCount.textContent = state.tweets.length;
   elements.printModalRatio.textContent = state.aspectRatio.replace("-", ":");
-  elements.printModalTheme.textContent = state.styling.theme === "light" ? "Light #ffffff" : "Dark #000000";
+  elements.printModalTheme.textContent = state.styling.theme === "light" ? "Light" : "Dark";
   elements.printModal.classList.add("show");
 }
 
@@ -936,34 +1034,20 @@ function executePrint(printAll) {
    EXPORT AS PNG & CLIPBOARD (Retina 1080p Quality)
    ========================================================================== */
 
-async function downloadSingleTweetPNG(index) {
-  const tweet = state.tweets[index] || state.tweets[0];
-  showToast("Rendering 1080p high-resolution card...", "info");
-
-  // Create offscreen container
-  const tempContainer = document.createElement("div");
-  tempContainer.style.position = "fixed";
-  tempContainer.style.left = "-9999px";
-  tempContainer.style.top = "0";
-  tempContainer.style.zIndex = "-1000";
-
-  const cardElement = createTweetCardElement(tweet, index, state.aspectRatio);
-
-  // Exact HD export dimensions
+function scaleCardForHDExport(cardElement, aspectRatio) {
   let width = 1080;
   let height = 1080;
-  if (state.aspectRatio === "4-5") height = 1350;
-  if (state.aspectRatio === "9-16") height = 1920;
+  if (aspectRatio === "4-5") height = 1350;
+  if (aspectRatio === "9-16") height = 1920;
 
   cardElement.style.width = `${width}px`;
   cardElement.style.height = `${height}px`;
   cardElement.style.maxWidth = "none";
   cardElement.style.borderRadius = "0";
 
-  // Scale internal proportions for 1080p
   const inner = cardElement.querySelector(".tweet-inner");
   if (inner) {
-    inner.style.padding = (state.aspectRatio === "9-16") ? "140px 90px" : "110px 90px";
+    inner.style.padding = (aspectRatio === "9-16") ? "140px 90px" : "110px 90px";
   }
 
   const avatar = cardElement.querySelector(".tweet-avatar-box");
@@ -977,6 +1061,12 @@ async function downloadSingleTweetPNG(index) {
 
   const handle = cardElement.querySelector(".tweet-author-handle");
   if (handle) handle.style.fontSize = "26px";
+
+  const headerDate = cardElement.querySelector(".tweet-header-date");
+  if (headerDate) headerDate.style.fontSize = "26px";
+
+  const headerDot = cardElement.querySelector(".tweet-header-dot");
+  if (headerDot) headerDot.style.fontSize = "26px";
 
   const badge = cardElement.querySelector(".tweet-badge-svg");
   if (badge) {
@@ -992,11 +1082,42 @@ async function downloadSingleTweetPNG(index) {
 
   const quote = cardElement.querySelector(".tweet-quote-text");
   if (quote) {
-    const scaleFactor = (state.aspectRatio === "9-16") ? 1.85 : 1.7;
+    const scaleFactor = (aspectRatio === "9-16") ? 1.85 : 1.7;
     quote.style.fontSize = `${Math.round(state.styling.fontSize * scaleFactor)}px`;
     quote.style.marginTop = "44px";
     quote.style.lineHeight = "1.52";
   }
+
+  const engagementsBar = cardElement.querySelector(".tweet-engagements-bar");
+  if (engagementsBar) {
+    engagementsBar.style.marginTop = (aspectRatio === "9-16") ? "50px" : "40px";
+    engagementsBar.querySelectorAll(".engagement-icon").forEach(icon => {
+      icon.style.width = "30px";
+      icon.style.height = "30px";
+    });
+    engagementsBar.querySelectorAll(".engagement-count").forEach(cnt => {
+      cnt.style.fontSize = "24px";
+    });
+    const actionsRight = engagementsBar.querySelector(".engagement-actions-right");
+    if (actionsRight) {
+      actionsRight.style.gap = "22px";
+    }
+  }
+}
+
+async function downloadSingleTweetPNG(index) {
+  const tweet = state.tweets[index] || state.tweets[0];
+  showToast("Rendering 1080p high-resolution card...", "info");
+
+  // Create offscreen container
+  const tempContainer = document.createElement("div");
+  tempContainer.style.position = "fixed";
+  tempContainer.style.left = "-9999px";
+  tempContainer.style.top = "0";
+  tempContainer.style.zIndex = "-1000";
+
+  const cardElement = createTweetCardElement(tweet, index, state.aspectRatio);
+  scaleCardForHDExport(cardElement, state.aspectRatio);
 
   tempContainer.appendChild(cardElement);
   document.body.appendChild(tempContainer);
@@ -1047,33 +1168,7 @@ async function copyActiveCardToClipboard() {
   tempContainer.style.top = "0";
 
   const cardElement = createTweetCardElement(currentTweet, state.activeTweetIndex, state.aspectRatio);
-
-  let width = 1080;
-  let height = 1080;
-  if (state.aspectRatio === "4-5") height = 1350;
-  if (state.aspectRatio === "9-16") height = 1920;
-
-  cardElement.style.width = `${width}px`;
-  cardElement.style.height = `${height}px`;
-  cardElement.style.maxWidth = "none";
-  cardElement.style.borderRadius = "0";
-
-  const inner = cardElement.querySelector(".tweet-inner");
-  if (inner) inner.style.padding = (state.aspectRatio === "9-16") ? "140px 90px" : "110px 90px";
-  const avatar = cardElement.querySelector(".tweet-avatar-box");
-  if (avatar) { avatar.style.width = "104px"; avatar.style.height = "104px"; }
-  const name = cardElement.querySelector(".tweet-author-name");
-  if (name) name.style.fontSize = "34px";
-  const handle = cardElement.querySelector(".tweet-author-handle");
-  if (handle) handle.style.fontSize = "26px";
-  const badge = cardElement.querySelector(".tweet-badge-svg");
-  if (badge) { badge.style.width = "34px"; badge.style.height = "34px"; }
-  const quote = cardElement.querySelector(".tweet-quote-text");
-  if (quote) {
-    const scaleFactor = (state.aspectRatio === "9-16") ? 1.85 : 1.7;
-    quote.style.fontSize = `${Math.round(state.styling.fontSize * scaleFactor)}px`;
-    quote.style.marginTop = "44px";
-  }
+  scaleCardForHDExport(cardElement, state.aspectRatio);
 
   tempContainer.appendChild(cardElement);
   document.body.appendChild(tempContainer);
