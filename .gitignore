@@ -1,0 +1,23 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editor & IDE Directories
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary & Log Files
+*.log
+*.tmp
+*-test.png
+check-*.png
+
+# Node modules & scratch files
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
