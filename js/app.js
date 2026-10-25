@@ -948,39 +948,76 @@ function renderPreview() {
     elements.cardsDisplayContainer.appendChild(cardElement);
 
   } else {
-    // Gallery Mode
+    // Gallery Mode - Canva-style Vertical Cards Stream
     elements.canvasStage.classList.add("gallery-view");
 
-    const grid = document.createElement("div");
-    grid.className = "cards-gallery-grid";
+    const stream = document.createElement("div");
+    stream.className = "cards-gallery-vertical-stream";
 
     state.tweets.forEach((tweet, idx) => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "card-outer-wrapper";
+      const rowWrapper = document.createElement("div");
+      rowWrapper.className = "gallery-card-row-wrapper";
 
-      const cardElement = createTweetCardElement(tweet, idx, state.aspectRatio);
-      wrapper.appendChild(cardElement);
+      const frame = document.createElement("div");
+      frame.className = "gallery-card-frame";
 
-      // Gallery Action buttons
-      const actions = document.createElement("div");
-      actions.className = "gallery-card-actions no-print";
-      actions.innerHTML = `
-        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">#${idx + 1}</span>
-        <button type="button" class="btn btn-secondary btn-sm single-png-btn" title="Save PNG">Save PNG</button>
-        <button type="button" class="btn btn-ghost btn-sm single-print-btn" title="Print this card">Print</button>
+      // Canva-style header toolbar for this card
+      const toolbar = document.createElement("div");
+      toolbar.className = "gallery-card-toolbar no-print";
+      toolbar.innerHTML = `
+        <div class="gallery-card-page-badge">
+          <span>Card #${idx + 1} of ${state.tweets.length}</span>
+        </div>
+        <div class="gallery-card-toolbar-actions">
+          <button type="button" class="btn btn-secondary btn-sm single-edit-btn" title="Focus and edit this tweet">
+            <i class="fa-solid fa-pen" style="font-size: 0.72rem; margin-right: 4px;"></i> Edit
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm single-png-btn" title="Save 1080p PNG">
+            <i class="fa-solid fa-download" style="font-size: 0.72rem; margin-right: 4px;"></i> Save PNG
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm single-print-btn" title="Print this card">
+            <i class="fa-solid fa-print" style="font-size: 0.72rem; margin-right: 4px;"></i> Print
+          </button>
+        </div>
       `;
 
-      actions.querySelector(".single-png-btn").addEventListener("click", () => downloadSingleTweetPNG(idx));
-      actions.querySelector(".single-print-btn").addEventListener("click", () => {
+      toolbar.querySelector(".single-edit-btn").addEventListener("click", () => {
+        state.activeTweetIndex = idx;
+        setViewMode("single");
+        renderTweetsTabs();
+        renderSidebarEditor();
+        const editorTextarea = document.querySelector(".current-tweet-text");
+        if (editorTextarea) editorTextarea.focus();
+      });
+
+      toolbar.querySelector(".single-png-btn").addEventListener("click", () => downloadSingleTweetPNG(idx));
+      toolbar.querySelector(".single-print-btn").addEventListener("click", () => {
         state.activeTweetIndex = idx;
         executePrint(false);
       });
 
-      wrapper.appendChild(actions);
-      grid.appendChild(wrapper);
+      const cardElement = createTweetCardElement(tweet, idx, state.aspectRatio);
+
+      // Clicking directly on the card selects it for editing in the sidebar
+      cardElement.style.cursor = "pointer";
+      cardElement.title = `Click to edit Tweet #${idx + 1}`;
+      cardElement.addEventListener("click", (e) => {
+        if (!e.target.closest("button")) {
+          state.activeTweetIndex = idx;
+          renderTweetsTabs();
+          renderSidebarEditor();
+          const editorTextarea = document.querySelector(".current-tweet-text");
+          if (editorTextarea) editorTextarea.focus();
+        }
+      });
+
+      frame.appendChild(toolbar);
+      frame.appendChild(cardElement);
+      rowWrapper.appendChild(frame);
+      stream.appendChild(rowWrapper);
     });
 
-    elements.cardsDisplayContainer.appendChild(grid);
+    elements.cardsDisplayContainer.appendChild(stream);
   }
 }
 
