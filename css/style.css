@@ -5,24 +5,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --primary: #1d9bf0;
-  --primary-hover: #1a8cd8;
-  --primary-glow: rgba(29, 155, 240, 0.28);
-  --primary-subtle: rgba(29, 155, 240, 0.12);
+  --primary: #c5f58a;
+  --primary-hover: #d7ffa9;
+  --primary-glow: rgba(197, 245, 138, 0.28);
+  --primary-subtle: rgba(197, 245, 138, 0.14);
   
-  --bg-app: #080b11;
-  --bg-sidebar: #0f141f;
-  --bg-card: #151b29;
-  --bg-card-hover: #1b2335;
-  --bg-input: #0b0f17;
+  --bg-app: #0b1110;
+  --bg-sidebar: #101915;
+  --bg-card: #14211c;
+  --bg-card-hover: #1b2d26;
+  --bg-input: #0e1713;
   
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.14);
-  --border-focus: #1d9bf0;
+  --border-subtle: rgba(211, 235, 217, 0.12);
+  --border-medium: rgba(211, 235, 217, 0.22);
+  --border-focus: #c5f58a;
   
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #f4f4e9;
+  --text-secondary: #a9b5ac;
+  --text-muted: #64756a;
   
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -41,8 +41,6 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
 /* ==========================================================================
@@ -116,11 +114,11 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #1d9bf0, #0070bb);
+  background: linear-gradient(135deg, var(--primary), #82b545);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: #0b1110;
   box-shadow: 0 4px 14px var(--primary-glow);
 }
 
@@ -247,13 +245,15 @@ body {
 
 .btn-primary {
   background: var(--primary);
-  color: #ffffff;
-  border-color: rgba(29, 155, 240, 0.9);
+  color: #0b1110;
+  font-weight: 750;
+  border-color: var(--primary);
   box-shadow: 0 4px 14px var(--primary-glow);
 }
 
 .btn-primary:hover {
   background: var(--primary-hover);
+  color: #0b1110;
   transform: translateY(-1px);
   box-shadow: 0 6px 20px var(--primary-glow);
 }
@@ -266,7 +266,8 @@ body {
 
 .btn-secondary:hover {
   background: var(--bg-card-hover);
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: var(--primary);
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
@@ -424,7 +425,7 @@ body {
 .field-input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-subtle);
-  background: #0f1420;
+  background: #101c16;
 }
 
 .field-textarea {
@@ -446,7 +447,7 @@ body {
 .field-textarea:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-subtle);
-  background: #0f1420;
+  background: #101c16;
 }
 
 .metrics-grid {
@@ -531,11 +532,11 @@ body {
   justify-content: space-between;
   gap: 0.65rem;
   background: var(--primary-subtle);
-  border: 1px solid rgba(29, 155, 240, 0.35);
+  border: 1px solid rgba(197, 245, 138, 0.25);
   padding: 0.6rem 0.85rem;
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
-  color: #7dd3fc;
+  color: var(--text-primary);
   margin-top: 0.75rem;
   transition: var(--transition);
 }
@@ -592,7 +593,7 @@ body {
 }
 
 .tweet-editor-box {
-  background: var(--bg-input);
+  background: rgba(14, 24, 19, 0.85);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 0.85rem;
@@ -601,7 +602,7 @@ body {
 
 .tweet-editor-box.active {
   border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
+  box-shadow: 0 0 0 1px var(--primary), 0 4px 18px var(--primary-glow);
 }
 
 .tweet-box-top {
@@ -686,7 +687,7 @@ body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #1d9bf0;
+  background-color: var(--primary);
 }
 
 .mock-line {
@@ -831,6 +832,7 @@ input:checked + .toggle-track {
 
 input:checked + .toggle-track:before {
   transform: translateX(16px);
+  background-color: #0b1110;
 }
 
 /* ==========================================================================
@@ -1414,8 +1416,8 @@ input:checked + .toggle-track:before {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: rgba(29, 155, 240, 0.08);
-  border: 1px solid rgba(29, 155, 240, 0.25);
+  background: var(--primary-subtle);
+  border: 1px solid rgba(197, 245, 138, 0.25);
   border-radius: var(--radius-md);
   padding: 0.85rem 1.1rem;
   margin-bottom: 1.25rem;
@@ -1429,7 +1431,7 @@ input:checked + .toggle-track:before {
 }
 
 .sample-info-text strong {
-  color: #7dd3fc;
+  color: var(--primary);
   font-weight: 700;
 }
 
@@ -1456,7 +1458,7 @@ input:checked + .toggle-track:before {
 .csv-drop-zone:hover,
 .csv-drop-zone.dragover {
   border-color: var(--primary);
-  background: rgba(29, 155, 240, 0.06);
+  background: var(--primary-subtle);
 }
 
 .csv-drop-icon {
@@ -1646,9 +1648,9 @@ input:checked + .toggle-track:before {
 }
 
 .toast.info {
-  border-color: rgba(29, 155, 240, 0.6);
-  background: #082136;
-  color: #7dd3fc;
+  border-color: rgba(197, 245, 138, 0.4);
+  background: #0f1f18;
+  color: var(--primary);
 }
 
 @keyframes toastIn {
@@ -1824,7 +1826,7 @@ input:checked + .toggle-track:before {
 .mobile-tab-btn.active {
   color: var(--primary);
   border-bottom-color: var(--primary);
-  background: rgba(29, 155, 240, 0.08);
+  background: var(--primary-subtle);
 }
 
 .mobile-tab-btn svg {
@@ -1914,8 +1916,9 @@ input:checked + .toggle-track:before {
 
   .app-workspace {
     position: relative;
-    height: calc(100vh - 105px);
-    overflow: hidden;
+    height: auto;
+    min-height: calc(100vh - 120px);
+    overflow: visible;
   }
 
   /* Dual View Mode Switching on Mobile: Preview vs Edit */
@@ -2055,31 +2058,67 @@ input:checked + .toggle-track:before {
   }
 
   .tweet-card.ratio-1-1 {
-    width: 92vw;
+    width: min(360px, calc(100vw - 24px));
   }
 
   .tweet-card.ratio-1-1 .tweet-inner {
-    padding: 30px 20px;
+    padding: 24px 18px;
+  }
+
+  .tweet-card.ratio-1-1 .tweet-quote-text {
+    font-size: 19px;
+    margin-top: 16px;
   }
 
   .tweet-card.ratio-4-5 {
-    width: 90vw;
+    width: min(340px, calc(100vw - 28px));
   }
 
   .tweet-card.ratio-4-5 .tweet-inner {
-    padding: 34px 20px;
+    padding: 28px 18px;
+  }
+
+  .tweet-card.ratio-4-5 .tweet-quote-text {
+    font-size: 20px;
+    margin-top: 18px;
   }
 
   .tweet-card.ratio-9-16 {
-    height: min(480px, 64vh);
+    height: min(480px, calc(100vh - 180px));
+    width: auto;
+    max-width: calc(100vw - 24px);
   }
 
   .tweet-card.ratio-9-16 .tweet-inner {
-    padding: 38px 22px;
+    padding: 30px 18px;
+  }
+
+  .tweet-card.ratio-9-16 .tweet-quote-text {
+    font-size: 20px;
+    margin-top: 18px;
   }
 
   .canvas-bottom-dock {
     bottom: 12px;
     padding: 4px 10px;
+    max-width: calc(100% - 20px);
+  }
+}
+
+@media (max-width: 360px) {
+  .tweet-card.ratio-1-1 .tweet-inner,
+  .tweet-card.ratio-4-5 .tweet-inner,
+  .tweet-card.ratio-9-16 .tweet-inner {
+    padding: 18px 14px;
+  }
+  .tweet-avatar-box {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  .tweet-author-name {
+    font-size: 16px !important;
+  }
+  .tweet-author-handle {
+    font-size: 13px !important;
   }
 }
