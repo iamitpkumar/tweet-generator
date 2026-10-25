@@ -193,9 +193,6 @@
               Tweets (<span id="tweetsCountBadge">1</span>)
             </span>
             <div style="display: flex; gap: 0.4rem;">
-              <button type="button" class="btn btn-secondary btn-sm" id="bulkAddBtn" title="Bulk paste multiple quotes">
-                ⚡ Bulk Quotes
-              </button>
               <button type="button" class="btn btn-primary btn-sm" id="addTweetBtn" title="Add another tweet">
                 + Add Tweet
               </button>
@@ -333,25 +330,68 @@
   <!-- Hidden Container Dedicated for Pixel-Perfect Printing -->
   <div id="print-staging-container"></div>
 
-  <!-- Bulk Add Quotes Modal -->
-  <div class="modal-backdrop" id="bulkModal">
+  <!-- CSV Upload Modal -->
+  <div class="modal-backdrop" id="csvModal">
     <div class="modal-dialog">
       <div class="modal-header">
         <h3 class="modal-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          Bulk Add Tweets / Quotes
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Import Tweets from CSV
         </h3>
-        <button type="button" class="btn btn-ghost btn-sm" id="closeBulkModalBtn">✕</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="closeCsvModalBtn">✕</button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.85rem;">
-          Paste your quotes or thoughts below. Separate each tweet with a blank line (double Enter) or enter one quote per line:
-        </p>
-        <textarea id="bulkQuotesInput" class="field-textarea" style="min-height: 180px;" placeholder="Do things at your own pace.&#10;Life's not a race.&#10;&#10;Consistency is more important than perfection.&#10;&#10;Small steps every day lead to massive results."></textarea>
+        <!-- Sample CSV download row -->
+        <div class="csv-sample-download-box">
+          <div class="sample-info-text">
+            <strong>Need the CSV format?</strong>
+            <span>Your CSV needs a "Tweet" (or "Quote" / "Text") column, or one tweet per row.</span>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="downloadSampleCsvBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Download Sample CSV</span>
+          </button>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div class="csv-drop-zone" id="csvDropZone">
+          <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display: none;">
+          <div class="csv-drop-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <div class="csv-drop-title">Click to select or drag & drop .csv file</div>
+          <div class="csv-drop-hint">Supports UTF-8 CSV files with multiple tweets</div>
+        </div>
+
+        <!-- CSV File Info & Preview after selection -->
+        <div id="csvFileInfoBox" class="csv-file-info-box" style="display: none;">
+          <div class="csv-file-meta">
+            <span class="csv-file-name" id="csvFileName">tweets.csv</span>
+            <span class="csv-count-badge" id="csvDetectedCount">0 tweets found</span>
+          </div>
+          <!-- Preview list of tweets -->
+          <div class="csv-preview-list" id="csvPreviewList"></div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-ghost" id="bulkModalCancelBtn">Cancel</button>
-        <button type="button" class="btn btn-primary" id="bulkModalSubmitBtn">Generate All Tweets</button>
+        <button type="button" class="btn btn-ghost" id="csvModalCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="csvModalSubmitBtn" disabled>
+          Generate Tweets
+        </button>
       </div>
     </div>
   </div>

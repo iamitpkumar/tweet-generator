@@ -78,7 +78,6 @@ const elements = {
   tweetsTabsNav: document.getElementById("tweetsTabsNav"),
   tweetsEditorList: document.getElementById("tweetsEditorList"),
   addTweetBtn: document.getElementById("addTweetBtn"),
-  bulkAddBtn: document.getElementById("bulkAddBtn"),
 
   // Style Settings
   sidebarRatioButtons: document.querySelectorAll("#sidebarRatioControl .seg-button"),
@@ -100,12 +99,18 @@ const elements = {
   viewModeSingleBtn: document.getElementById("viewModeSingleBtn"),
   viewModeGalleryBtn: document.getElementById("viewModeGalleryBtn"),
 
-  // Modals
-  bulkModal: document.getElementById("bulkModal"),
-  closeBulkModalBtn: document.getElementById("closeBulkModalBtn"),
-  bulkModalCancelBtn: document.getElementById("bulkModalCancelBtn"),
-  bulkModalSubmitBtn: document.getElementById("bulkModalSubmitBtn"),
-  bulkQuotesInput: document.getElementById("bulkQuotesInput"),
+  // CSV Modal
+  csvModal: document.getElementById("csvModal"),
+  closeCsvModalBtn: document.getElementById("closeCsvModalBtn"),
+  csvModalCancelBtn: document.getElementById("csvModalCancelBtn"),
+  csvModalSubmitBtn: document.getElementById("csvModalSubmitBtn"),
+  downloadSampleCsvBtn: document.getElementById("downloadSampleCsvBtn"),
+  csvDropZone: document.getElementById("csvDropZone"),
+  csvFileInput: document.getElementById("csvFileInput"),
+  csvFileInfoBox: document.getElementById("csvFileInfoBox"),
+  csvFileName: document.getElementById("csvFileName"),
+  csvDetectedCount: document.getElementById("csvDetectedCount"),
+  csvPreviewList: document.getElementById("csvPreviewList"),
 
   printModal: document.getElementById("printModal"),
   closePrintModalBtn: document.getElementById("closePrintModalBtn"),
@@ -326,10 +331,29 @@ function bindEvents() {
   elements.viewModeSingleBtn.addEventListener("click", () => setViewMode("single"));
   elements.viewModeGalleryBtn.addEventListener("click", () => setViewMode("gallery"));
 
-  // Bulk Modal
-  elements.closeBulkModalBtn.addEventListener("click", closeBulkModal);
-  elements.bulkModalCancelBtn.addEventListener("click", closeBulkModal);
-  elements.bulkModalSubmitBtn.addEventListener("click", processBulkQuotes);
+  // CSV Modal Events
+  elements.closeCsvModalBtn.addEventListener("click", closeCsvModal);
+  elements.csvModalCancelBtn.addEventListener("click", closeCsvModal);
+  elements.downloadSampleCsvBtn.addEventListener("click", downloadSampleCSV);
+  elements.csvDropZone.addEventListener("click", () => elements.csvFileInput.click());
+  elements.csvFileInput.addEventListener("change", handleCsvFileInput);
+  elements.csvModalSubmitBtn.addEventListener("click", importParsedTweets);
+
+  // Drag & drop CSV
+  elements.csvDropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    elements.csvDropZone.classList.add("dragover");
+  });
+  elements.csvDropZone.addEventListener("dragleave", () => {
+    elements.csvDropZone.classList.remove("dragover");
+  });
+  elements.csvDropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    elements.csvDropZone.classList.remove("dragover");
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processCsvFile(e.dataTransfer.files[0]);
+    }
+  });
 
   // Print Modal
   elements.closePrintModalBtn.addEventListener("click", closePrintModal);
@@ -503,6 +527,19 @@ function renderSidebarEditor() {
     </div>
     <textarea class="field-textarea current-tweet-text" rows="4" placeholder="Enter tweet content...">${escapeHTML(tweet.text)}</textarea>
     <div class="tweet-char-count">${tweet.text.length} characters</div>
+
+    <!-- Full-width Button to Upload CSV with tweets -->
+    <div class="csv-upload-btn-wrapper">
+      <button type="button" class="btn btn-full-width" id="openCsvModalBtn" title="Upload a CSV file containing tweets">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="12" y1="18" x2="12" y2="12"></line>
+          <line x1="9" y1="15" x2="15" y2="15"></line>
+        </svg>
+        <span>Upload CSV File with Tweets</span>
+      </button>
+    </div>
   `;
 
   const textarea = box.querySelector(".current-tweet-text");
@@ -519,47 +556,202 @@ function renderSidebarEditor() {
   const delBtn = box.querySelector(".delete-btn");
   if (delBtn) delBtn.addEventListener("click", () => deleteTweet(idx));
 
+  // CSV button trigger
+  box.querySelector("#openCsvModalBtn").addEventListener("click", openCsvModal);
+
   elements.tweetsEditorList.appendChild(box);
 }
 
 /* ==========================================================================
-   Bulk Add Modal
+   CSV Upload Modal & Parser
    ========================================================================== */
 
-function openBulkModal() {
-  elements.bulkQuotesInput.value = "";
-  elements.bulkModal.classList.add("show");
-  elements.bulkQuotesInput.focus();
+let parsedCsvTweets = [];
+
+function openCsvModal() {
+  parsedCsvTweets = [];
+  elements.csvFileInput.value = "";
+  elements.csvFileInfoBox.style.display = "none";
+  elements.csvModalSubmitBtn.disabled = true;
+  elements.csvModal.classList.add("show");
 }
 
-function closeBulkModal() {
-  elements.bulkModal.classList.remove("show");
+function closeCsvModal() {
+  elements.csvModal.classList.remove("show");
 }
 
-function processBulkQuotes() {
-  const raw = elements.bulkQuotesInput.value.trim();
-  if (!raw) {
-    showToast("Please enter some quotes first", "info");
+function downloadSampleCSV() {
+  const sampleCSV = `Tweet
+"Do things at your own pace. Life's not a race."
+"Consistency is more important than perfection."
+"Small daily habits create massive long-term results."
+"Focus on what you can control, let go of what you cannot."
+"Your time is limited, don't waste it living someone else's life."
+"Difficult roads often lead to beautiful destinations."`;
+
+  const blob = new Blob([sampleCSV], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "sample-tweets.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("Downloaded sample-tweets.csv!", "success");
+}
+
+function handleCsvFileInput(e) {
+  if (e.target.files && e.target.files[0]) {
+    processCsvFile(e.target.files[0]);
+  }
+}
+
+function processCsvFile(file) {
+  if (!file.name.toLowerCase().endsWith(".csv") && file.type !== "text/csv") {
+    showToast("Please select a valid .csv file", "info");
     return;
   }
 
-  // Split by double newline, or single newline if single quotes
-  let items = raw.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
-  if (items.length === 1 && raw.includes("\n")) {
-    items = raw.split(/\n/).map(s => s.trim()).filter(Boolean);
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const content = e.target.result;
+    const tweets = parseCSV(content);
+
+    if (tweets.length === 0) {
+      showToast("No tweets found in this CSV file", "info");
+      elements.csvFileInfoBox.style.display = "none";
+      elements.csvModalSubmitBtn.disabled = true;
+      return;
+    }
+
+    parsedCsvTweets = tweets;
+    elements.csvFileName.textContent = file.name;
+    elements.csvDetectedCount.textContent = `${tweets.length} tweet${tweets.length > 1 ? 's' : ''} detected`;
+
+    // Render preview of first 5 items
+    elements.csvPreviewList.innerHTML = "";
+    tweets.slice(0, 5).forEach((t, i) => {
+      const item = document.createElement("div");
+      item.className = "csv-preview-item";
+      item.textContent = `${i + 1}. ${t}`;
+      elements.csvPreviewList.appendChild(item);
+    });
+
+    if (tweets.length > 5) {
+      const more = document.createElement("div");
+      more.className = "csv-preview-item";
+      more.style.fontStyle = "italic";
+      more.textContent = `... and ${tweets.length - 5} more tweets`;
+      elements.csvPreviewList.appendChild(more);
+    }
+
+    elements.csvFileInfoBox.style.display = "block";
+    elements.csvModalSubmitBtn.disabled = false;
+  };
+
+  reader.readAsText(file, "UTF-8");
+}
+
+function parseCSV(text) {
+  if (!text) return [];
+
+  // Remove BOM if present
+  if (text.charCodeAt(0) === 0xFEFF) {
+    text = text.slice(1);
   }
 
-  if (items.length === 0) return;
+  const rows = [];
+  let currentRow = [];
+  let currentVal = '';
+  let inQuotes = false;
 
-  state.tweets = items.map((q, i) => ({ id: Date.now() + i, text: q }));
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (inQuotes) {
+      if (char === '"' && nextChar === '"') {
+        currentVal += '"';
+        i++; // skip escaped double quote
+      } else if (char === '"') {
+        inQuotes = false;
+      } else {
+        currentVal += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === ',') {
+        currentRow.push(currentVal.trim());
+        currentVal = '';
+      } else if (char === '\r') {
+        // skip carriage return
+      } else if (char === '\n') {
+        currentRow.push(currentVal.trim());
+        if (currentRow.some(c => c.length > 0)) {
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        currentVal = '';
+      } else {
+        currentVal += char;
+      }
+    }
+  }
+
+  if (currentVal.length > 0 || inQuotes) {
+    currentRow.push(currentVal.trim());
+  }
+  if (currentRow.some(c => c.length > 0)) {
+    rows.push(currentRow);
+  }
+
+  if (rows.length === 0) return [];
+
+  // Check if first row is header
+  let tweetColIdx = 0;
+  let startIndex = 0;
+
+  const header = rows[0].map(h => h.toLowerCase());
+  const headerIdx = header.findIndex(h =>
+    h === 'tweet' || h === 'tweets' || h === 'content' || h === 'quote' || h === 'quotes' || h === 'text' || h === 'post'
+  );
+
+  if (headerIdx !== -1) {
+    tweetColIdx = headerIdx;
+    startIndex = 1;
+  } else {
+    startIndex = 0;
+    tweetColIdx = 0;
+  }
+
+  const results = [];
+  for (let r = startIndex; r < rows.length; r++) {
+    const val = rows[r][tweetColIdx];
+    if (val && val.trim().length > 0) {
+      results.push(val.trim());
+    }
+  }
+
+  return results;
+}
+
+function importParsedTweets() {
+  if (parsedCsvTweets.length === 0) return;
+
+  state.tweets = parsedCsvTweets.map((quote, idx) => ({
+    id: Date.now() + idx,
+    text: quote
+  }));
   state.activeTweetIndex = 0;
 
-  closeBulkModal();
+  closeCsvModal();
   renderTweetsTabs();
   renderSidebarEditor();
   renderPreview();
   updateDockNav();
-  showToast(`Generated ${items.length} tweet cards!`, "success");
+  showToast(`Successfully imported ${state.tweets.length} tweets from CSV!`, "success");
 }
 
 /* ==========================================================================

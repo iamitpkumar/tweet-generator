@@ -1214,8 +1214,171 @@ input:checked + .toggle-track:before {
   gap: 0.5rem;
 }
 
+/* Full Width Buttons */
+.btn-full-width {
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+}
+
+/* CSV Upload Box in Sidebar */
+.csv-upload-btn-wrapper {
+  margin-top: 0.9rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.csv-upload-btn-wrapper .btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed var(--border-medium);
+  color: var(--text-primary);
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.csv-upload-btn-wrapper .btn:hover {
+  border-color: var(--primary);
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
+/* CSV Modal Styles */
+.csv-sample-download-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(29, 155, 240, 0.08);
+  border: 1px solid rgba(29, 155, 240, 0.25);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 1.25rem;
+}
+
+.sample-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.82rem;
+}
+
+.sample-info-text strong {
+  color: #7dd3fc;
+  font-weight: 700;
+}
+
+.sample-info-text span {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.csv-drop-zone {
+  border: 2px dashed var(--border-medium);
+  background: var(--bg-input);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.csv-drop-zone:hover,
+.csv-drop-zone.dragover {
+  border-color: var(--primary);
+  background: rgba(29, 155, 240, 0.06);
+}
+
+.csv-drop-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--primary-subtle);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.csv-drop-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.csv-drop-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.csv-drop-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.csv-file-info-box {
+  margin-top: 1rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+}
+
+.csv-file-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.csv-file-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.csv-count-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--primary-subtle);
+  color: var(--primary);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+}
+
+.csv-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.csv-preview-item {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ==========================================================================
-   Modals (Bulk Import & Print Confirm)
+   Modals (CSV Import & Print Confirm)
    ========================================================================== */
 
 .modal-backdrop {
