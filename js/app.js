@@ -390,6 +390,11 @@ function init() {
   renderPreview();
   updateDockNav();
 
+  // Initialize CoolCards Universal Premium Dropdowns
+  if (typeof window.initCoolCardsDropdowns === 'function') {
+    window.initCoolCardsDropdowns();
+  }
+
   // Save immediately when user leaves or refreshes the page
   window.addEventListener("beforeunload", saveStateImmediately);
 }
@@ -1557,3 +1562,235 @@ function showToast(message, type = "info") {
 
 // Initialize on DOM load
 document.addEventListener("DOMContentLoaded", init);
+
+/* ==========================================================================
+   COOLCARDS UNIVERSAL PREMIUM DROPDOWN ENGINE (.cc-dropdown)
+   Engineered for Luxury Obsidian Aesthetics, High Usability & Deep Glassmorphism
+   ========================================================================== */
+if (typeof window.initCoolCardsDropdowns !== 'function') {
+  window.initCoolCardsDropdowns = function(scope = document) {
+    const selects = scope.querySelectorAll('select.cc-dropdown, select.styled-select, select[data-cc-dropdown]');
+
+    function applyFontPreview(el, val) {
+      if (!val) return;
+      const fontMap = {
+        'inter': "'Inter', sans-serif",
+        'montserrat': "'Montserrat', sans-serif",
+        'poppins': "'Poppins', sans-serif",
+        'playfair': "'Playfair Display', serif",
+        'jetbrains': "'JetBrains Mono', monospace",
+        'system': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        'outfit': "'Outfit', sans-serif",
+        'plus-jakarta': "'Plus Jakarta Sans', sans-serif",
+        'cinzel': "'Cinzel', serif",
+        'space-grotesk': "'Space Grotesk', sans-serif",
+        'syne': "'Syne', sans-serif"
+      };
+      if (fontMap[val.toLowerCase()]) {
+        el.style.fontFamily = fontMap[val.toLowerCase()];
+      }
+    }
+
+    selects.forEach(select => {
+      if (select.dataset.ccDropdownInitialized === 'true') return;
+      select.dataset.ccDropdownInitialized = 'true';
+
+      // Build or reuse wrapper
+      let wrap;
+      const parent = select.parentElement;
+      if (parent && (parent.classList.contains('styled-select-wrap') || parent.classList.contains('cc-select-wrapper'))) {
+        wrap = parent;
+        wrap.classList.add('cc-dropdown-wrap');
+        const oldArrow = wrap.querySelector('.select-arrow, i.fa-chevron-down');
+        if (oldArrow) oldArrow.style.display = 'none';
+      } else {
+        wrap = document.createElement('div');
+        wrap.className = 'cc-dropdown-wrap';
+        select.parentNode.insertBefore(wrap, select);
+        wrap.appendChild(select);
+      }
+      select.classList.add('cc-dropdown-hidden');
+
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'cc-dropdown-trigger';
+      trigger.setAttribute('aria-haspopup', 'listbox');
+      trigger.setAttribute('aria-expanded', 'false');
+
+      const selectedWrap = document.createElement('span');
+      selectedWrap.className = 'cc-dropdown-selected';
+
+      const selectedText = document.createElement('span');
+      selectedText.className = 'cc-dropdown-selected-text';
+      
+      const activeOpt = select.options[select.selectedIndex] || select.options[0];
+      selectedText.textContent = activeOpt ? activeOpt.text : 'Select...';
+      if (activeOpt && activeOpt.value) {
+        applyFontPreview(selectedText, activeOpt.value);
+      }
+      selectedWrap.appendChild(selectedText);
+      trigger.appendChild(selectedWrap);
+
+      const chevron = document.createElement('i');
+      chevron.className = 'fa-solid fa-chevron-down cc-dropdown-chevron-icon';
+      trigger.appendChild(chevron);
+
+      wrap.appendChild(trigger);
+
+      const menu = document.createElement('div');
+      menu.className = 'cc-dropdown-menu';
+      menu.setAttribute('role', 'listbox');
+      menu.setAttribute('hidden', '');
+
+      function buildItems() {
+        menu.innerHTML = '';
+        Array.from(select.options).forEach((opt, idx) => {
+          const item = document.createElement('div');
+          item.className = 'cc-dropdown-item' + (idx === select.selectedIndex ? ' active' : '');
+          item.setAttribute('role', 'option');
+          item.setAttribute('data-value', opt.value);
+
+          const left = document.createElement('div');
+          left.className = 'cc-dropdown-item-left';
+
+          const iconClass = opt.getAttribute('data-icon');
+          if (iconClass) {
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'cc-dropdown-item-icon';
+            iconSpan.innerHTML = `<i class="${iconClass}"></i>`;
+            left.appendChild(iconSpan);
+          }
+
+          const textCol = document.createElement('div');
+          textCol.className = 'cc-dropdown-item-text';
+
+          const titleSpan = document.createElement('span');
+          titleSpan.className = 'cc-dropdown-item-title';
+          titleSpan.textContent = opt.text;
+          applyFontPreview(titleSpan, opt.value);
+
+          textCol.appendChild(titleSpan);
+
+          const desc = opt.getAttribute('data-desc');
+          if (desc) {
+            const descSpan = document.createElement('span');
+            descSpan.className = 'cc-dropdown-item-desc';
+            descSpan.textContent = desc;
+            textCol.appendChild(descSpan);
+          }
+
+          left.appendChild(textCol);
+          item.appendChild(left);
+
+          const check = document.createElement('i');
+          check.className = 'fa-solid fa-check cc-dropdown-check-icon';
+          item.appendChild(check);
+
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            select.selectedIndex = idx;
+            selectedText.textContent = opt.text;
+            applyFontPreview(selectedText, opt.value);
+
+            menu.querySelectorAll('.cc-dropdown-item').forEach(it => it.classList.remove('active'));
+            item.classList.add('active');
+
+            closeMenu();
+
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            select.dispatchEvent(new Event('input', { bubbles: true }));
+          });
+
+          menu.appendChild(item);
+        });
+      }
+
+      buildItems();
+      wrap.appendChild(menu);
+
+      function openMenu() {
+        document.querySelectorAll('.cc-dropdown-menu:not([hidden]), .cc-dropdown-listbox:not([hidden])').forEach(m => {
+          m.setAttribute('hidden', '');
+          const trig = m.parentNode ? m.parentNode.querySelector('.cc-dropdown-trigger') : null;
+          if (trig) trig.setAttribute('aria-expanded', 'false');
+        });
+
+        menu.removeAttribute('hidden');
+        trigger.setAttribute('aria-expanded', 'true');
+      }
+
+      function closeMenu() {
+        menu.setAttribute('hidden', '');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = !menu.hasAttribute('hidden');
+        if (isOpen) {
+          closeMenu();
+        } else {
+          openMenu();
+        }
+      });
+
+      select.addEventListener('change', () => {
+        const currentOpt = select.options[select.selectedIndex];
+        if (currentOpt) {
+          selectedText.textContent = currentOpt.text;
+          applyFontPreview(selectedText, currentOpt.value);
+          menu.querySelectorAll('.cc-dropdown-item').forEach((it, idx) => {
+            if (idx === select.selectedIndex) it.classList.add('active');
+            else it.classList.remove('active');
+          });
+        }
+      });
+
+      trigger.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (menu.hasAttribute('hidden')) {
+            openMenu();
+          } else {
+            let currIdx = select.selectedIndex;
+            if (e.key === 'ArrowDown') {
+              currIdx = Math.min(select.options.length - 1, currIdx + 1);
+            } else if (e.key === 'ArrowUp') {
+              currIdx = Math.max(0, currIdx - 1);
+            } else if (e.key === 'Enter' || e.key === ' ') {
+              closeMenu();
+              return;
+            }
+            select.selectedIndex = currIdx;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        } else if (e.key === 'Escape') {
+          closeMenu();
+        }
+      });
+    });
+
+    if (!window._ccDropdownGlobalClickAttached) {
+      window._ccDropdownGlobalClickAttached = true;
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.cc-dropdown-wrap')) {
+          document.querySelectorAll('.cc-dropdown-menu:not([hidden]), .cc-dropdown-listbox:not([hidden])').forEach(m => {
+            m.setAttribute('hidden', '');
+            const trig = m.parentNode ? m.parentNode.querySelector('.cc-dropdown-trigger') : null;
+            if (trig) trig.setAttribute('aria-expanded', 'false');
+          });
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.cc-dropdown-menu:not([hidden]), .cc-dropdown-listbox:not([hidden])').forEach(m => {
+            m.setAttribute('hidden', '');
+            const trig = m.parentNode ? m.parentNode.querySelector('.cc-dropdown-trigger') : null;
+            if (trig) trig.setAttribute('aria-expanded', 'false');
+          });
+        }
+      });
+    }
+  };
+}
